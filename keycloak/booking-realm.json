@@ -1,0 +1,47 @@
+{
+  "realm": "booking",
+  "enabled": true,
+  "sslRequired": "none",
+  "roles": {
+    "realm": [
+      { "name": "ADMIN" },
+      { "name": "MANAGER" },
+      { "name": "USER" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "booking-app",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "booking-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [ "http://localhost:8080/*" ],
+      "webOrigins": [ "+" ],
+      "attributes": { "post.logout.redirect.uris": "http://localhost:8080/*" }
+    }
+  ],
+  "users": [
+    {
+      "username": "admin", "enabled": true, "emailVerified": true,
+      "email": "admin@example.com", "firstName": "Ada", "lastName": "Admin",
+      "credentials": [ { "type": "password", "value": "admin", "temporary": false } ],
+      "realmRoles": [ "ADMIN", "USER" ]
+    },
+    {
+      "username": "manager", "enabled": true, "emailVerified": true,
+      "email": "manager@example.com", "firstName": "Max", "lastName": "Manager",
+      "credentials": [ { "type": "password", "value": "manager", "temporary": false } ],
+      "realmRoles": [ "MANAGER", "USER" ]
+    },
+    {
+      "username": "user", "enabled": true, "emailVerified": true,
+      "email": "user@example.com", "firstName": "Uma", "lastName": "User",
+      "credentials": [ { "type": "password", "value": "user", "temporary": false } ],
+      "realmRoles": [ "USER" ]
+    }
+  ]
+}

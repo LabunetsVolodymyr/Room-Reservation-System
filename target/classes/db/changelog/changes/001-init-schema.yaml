@@ -1,0 +1,119 @@
+# Початкова схема БД. Кожен changeSet виконується один раз і записується в databasechangelog.
+# Унікальність changeSet визначається трійкою: id + author + шлях до файлу.
+databaseChangeLog:
+
+  # ---------- changeSet 1: таблиця rooms ----------
+  - changeSet:
+      id: 001-create-rooms
+      author: student
+      changes:
+        - createTable:
+            tableName: rooms
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true          # у PostgreSQL створює IDENTITY (значення генерує БД)
+                  constraints:
+                    primaryKey: true           # первинний ключ
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false            # NOT NULL
+                    unique: true               # назва кімнати унікальна
+                    uniqueConstraintName: uq_rooms_name   # ім'я обмеження (зручно для діагностики)
+              - column:
+                  name: capacity
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(500)           # без constraints: NULL дозволено
+              - column:
+                  name: active
+                  type: BOOLEAN
+                  defaultValueBoolean: true    # нова кімната за замовчуванням активна
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP   # значення за замовчуванням - поточний час БД
+                  constraints:
+                    nullable: false
+
+  # ---------- changeSet 2: таблиця bookings ----------
+  - changeSet:
+      id: 002-create-bookings
+      author: student
+      changes:
+        - createTable:
+            tableName: bookings
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: room_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_bookings_room   # зовнішній ключ: не можна видалити кімнату з бронюваннями
+                    references: rooms(id)
+              - column:
+                  name: owner_id
+                  type: VARCHAR(64)            # sub з токена Keycloak (UUID) - окремої таблиці користувачів немає
+                  constraints:
+                    nullable: false
+              - column:
+                  name: start_time
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: end_time
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)            # PENDING / CONFIRMED / CANCELLED (текстом)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - createIndex:                         # індекс прискорює вибірку "мої бронювання" (WHERE owner_id = ?)
+            tableName: bookings
+            indexName: idx_bookings_owner
+            columns:
+              - column:
+                  name: owner_id
+
+  # ---------- changeSet 3: початкові дані ----------
+  - changeSet:
+      id: 003-seed-rooms
+      author: student
+      changes:
+        - insert:                              # INSERT двох кімнат; active і created_at беруться зі значень за замовчуванням
+            tableName: rooms
+            columns:
+              - column: { name: name, value: "Alpha" }
+              - column: { name: capacity, valueNumeric: 6 }
+              - column: { name: description, value: "Small meeting room" }
+        - insert:
+            tableName: rooms
+            columns:
+              - column: { name: name, value: "Beta" }
+              - column: { name: capacity, valueNumeric: 12 }
+              - column: { name: description, value: "Conference room with projector" }

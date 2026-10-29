@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--/* Сторінка лише для ADMIN: доступ обмежує SecurityConfig (uiChain: /admin/** -> hasRole('ADMIN')).
+     Інші користувачі отримують 403 ще до відображення шаблону. Це демонстрація критерію 6 для UI. */-->
+<head th:replace="~{fragments :: head('Admin')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<h1>Admin area</h1>
+<p>Ця сторінка доступна лише ролі ADMIN (правило в SecurityFilterChain: <code>/admin/**</code>).</p>
+</body>
+</html>

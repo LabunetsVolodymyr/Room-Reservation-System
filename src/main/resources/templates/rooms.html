@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<!--/* Сторінка зі списком кімнат (шаблон для GET /rooms). Дані "rooms", "msg", "error" кладе WebController. */-->
+
+<!--/* th:replace замінює цей елемент фрагментом head з fragments.html, передаючи заголовок сторінки */-->
+<head th:replace="~{fragments :: head('Rooms')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<h1>Rooms</h1>
+
+<!--/* th:if: показати блок лише якщо атрибут є. msg/error - flash-повідомлення з попереднього POST (PRG) */-->
+<div class="ok" th:if="${msg}" th:text="${msg}"></div>
+<div class="err" th:if="${error}" th:text="${error}"></div>
+
+<table>
+    <tr><th>ID</th><th>Name</th><th>Capacity</th><th>Description</th><th></th></tr>
+
+    <!--/* th:each: цикл по списку rooms; r - поточна кімната (RoomDto). Для record виклик метод-акцесор r.id(), r.name() */-->
+    <tr th:each="r : ${rooms}">
+        <td th:text="${r.id()}"></td>
+
+        <!--/* Редагування в рядку: ADMIN/MANAGER бачать поля введення, решта - лише текст (sec:authorize).
+             Прийом: поля <input> стоять у різних <td>, а форма одна на рядок. Атрибут form="rfN" прив'язує input до
+             форми з id="rfN" поза межами її розмітки. th:attr задає атрибут form динамічно ('rf' + id). */-->
+        <td>
+            <input name="name" th:value="${r.name()}" th:attr="form='rf' + ${r.id()}" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+            <span th:text="${r.name()}" sec:authorize="!hasAnyRole('ADMIN','MANAGER')"></span>
+        </td>
+        <td>
+            <input name="capacity" type="number" min="1" th:value="${r.capacity()}" th:attr="form='rf' + ${r.id()}" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+            <span th:text="${r.capacity()}" sec:authorize="!hasAnyRole('ADMIN','MANAGER')"></span>
+        </td>
+        <td>
+            <input name="description" th:value="${r.description()}" th:attr="form='rf' + ${r.id()}" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+            <span th:text="${r.description()}" sec:authorize="!hasAnyRole('ADMIN','MANAGER')"></span>
+        </td>
+        <td>
+            <!--/* Форма збереження: POST /rooms/{id}. th:id задає унікальний id форми; th:action додає CSRF-токен.
+                 Кнопку Save бачать лише ADMIN/MANAGER. Реальну перевірку прав виконує @PreAuthorize у RoomService. */-->
+            <form th:id="'rf' + ${r.id()}" class="inline" th:action="@{/rooms/{id}(id=${r.id()})}" method="post" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                <button type="submit">Save</button>
+            </form>
+            <!--/* Видалення (POST, бо HTML-форми не вміють DELETE): кнопка лише для ADMIN */-->
+            <form class="inline" th:action="@{/rooms/{id}/delete(id=${r.id()})}" method="post" sec:authorize="hasRole('ADMIN')">
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+</table>
+
+<!--/* Форма створення кімнати (лише для ADMIN/MANAGER). Поля name/capacity/description потрапляють у RoomDto
+     через @ModelAttribute у WebController.createRoom */-->
+<fieldset sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+    <legend>New room</legend>
+    <form th:action="@{/rooms}" method="post">
+        <input name="name" placeholder="Name" required>
+        <input name="capacity" type="number" min="1" placeholder="Capacity" required>
+        <input name="description" placeholder="Description">
+        <button type="submit">Create room</button>
+    </form>
+</fieldset>
+</body>
+</html>

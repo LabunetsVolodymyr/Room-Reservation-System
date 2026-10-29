@@ -1,0 +1,50 @@
+# Головний конфігураційний файл Spring Boot. YAML чутливий до відступів: тільки пробіли (по 2), без Tab.
+# Ключі утворюють "шлях", наприклад spring.datasource.url.
+
+server:
+  port: 8080                  # порт вбудованого Tomcat: http://localhost:8080
+
+spring:
+  application:
+    name: booking             # назва застосунку (з'являється в логах)
+
+  datasource:                 # підключення до PostgreSQL
+    url: jdbc:postgresql://localhost:5432/booking   # JDBC-адреса: хост localhost, порт 5432, база "booking"
+    username: postgres
+    password: alisVOVA26
+
+  jpa:
+    open-in-view: false       # вимикає Open Session In View: сесія Hibernate живе лише в межах сервісу (чистіша архітектура)
+    hibernate:
+      ddl-auto: validate      # Hibernate лише ПЕРЕВІРЯЄ, що таблиці відповідають Entity. Схемою керує Liquibase
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml   # головний файл міграцій; запускається автоматично при старті
+
+  mvc:
+    format:
+      date-time: iso          # формат LocalDateTime з HTML-форм (datetime-local): "2026-12-01T10:00"
+
+  security:
+    oauth2:
+      # ---- OAuth2/OIDC КЛІЄНТ: застосунок як клієнт Keycloak (для логіну через UI) ----
+      client:
+        registration:
+          keycloak:                              # довільна назва реєстрації (потрапляє в URL /login/oauth2/code/keycloak)
+            client-id: booking-app               # id клієнта в Keycloak (див. keycloak/booking-realm.json)
+            client-secret: booking-secret        # секрет клієнта (confidential client)
+            scope: openid,profile,email          # "openid" вмикає саме OIDC (видачу ID-токена)
+            authorization-grant-type: authorization_code   # потік Authorization Code (з редіректом на логін)
+        provider:
+          keycloak:
+            # Spring за цією адресою завантажує .well-known/openid-configuration: адреси authorize/token,
+            # ключі підпису тощо. Тому Keycloak має працювати вже на старті застосунку
+            issuer-uri: http://localhost:8180/realms/booking
+            user-name-attribute: preferred_username   # claim, що використовується як "ім'я" користувача (логін)
+
+      # ---- RESOURCE SERVER: застосунок перевіряє JWT, надіслані в API-запитах ----
+      resourceserver:
+        jwt:
+          # За issuer-uri Spring знаходить JWKS (публічні ключі Keycloak) і перевіряє ПІДПИС, термін дії та
+          # issuer кожного токена. Токени НЕ видає наш застосунок - лише перевіряє
+          issuer-uri: http://localhost:8180/realms/booking

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<!--/* Сторінка бронювань (GET /bookings). Модель: "bookings" (список бронювань), "rooms" (для select), msg/error. */-->
+<head th:replace="~{fragments :: head('Bookings')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<h1>Bookings</h1>
+<div class="ok" th:if="${msg}" th:text="${msg}"></div>
+<div class="err" th:if="${error}" th:text="${error}"></div>
+
+<!--/* Форма створення бронювання -> POST /bookings (WebController.createBooking). Поля roomId, startTime, endTime
+     збираються в BookingDto. Власник і статус виставляються на сервері, а не з форми. */-->
+<fieldset>
+    <legend>New booking</legend>
+    <form th:action="@{/bookings}" method="post">
+        <!--/* select зі списком кімнат: value = id кімнати, текст = "назва (місткість)" */-->
+        <select name="roomId" required>
+            <option th:each="r : ${rooms}" th:value="${r.id()}" th:text="${r.name()} + ' (' + ${r.capacity()} + ')'"></option>
+        </select>
+        <!--/* type="datetime-local" дає браузерний вибір дати/часу; формат "2026-12-01T10:00" розбирає spring.mvc.format.date-time=iso */-->
+        <input name="startTime" type="datetime-local" required>
+        <input name="endTime" type="datetime-local" required>
+        <button type="submit">Book</button>
+    </form>
+</fieldset>
+
+<table>
+    <tr><th>ID</th><th>Room</th><th>Start</th><th>End</th><th>Status</th><th>Owner</th><th></th></tr>
+    <!--/* Цикл по бронюваннях: USER отримує лише свої, ADMIN/MANAGER - усі (це вирішує BookingService.list) */-->
+    <tr th:each="b : ${bookings}">
+        <td th:text="${b.id()}"></td>
+        <td th:text="${b.roomName()}"></td>
+        <!--/* Поля часу прив'язані до форми bfN (атрибут form) - редагування прямо в рядку, див. rooms.html */-->
+        <td>
+            <input name="startTime" type="datetime-local" th:value="${b.startTime()}" th:attr="form='bf' + ${b.id()}">
+        </td>
+        <td>
+            <input name="endTime" type="datetime-local" th:value="${b.endTime()}" th:attr="form='bf' + ${b.id()}">
+        </td>
+        <td th:text="${b.status()}"></td>
+        <!--/* Власник: sub (UUID) скорочуємо до 13 символів функцією #strings.abbreviate */-->
+        <td th:text="${#strings.abbreviate(b.ownerId(), 13)}"></td>
+        <td>
+            <!--/* Збереження змін: у формі прихований roomId (кімнату тут не редагуємо), решта полів - через атрибут form */-->
+            <form th:id="'bf' + ${b.id()}" class="inline" th:action="@{/bookings/{id}(id=${b.id()})}" method="post">
+                <input type="hidden" name="roomId" th:value="${b.roomId()}">
+                <button type="submit">Save</button>
+            </form>
+            <!--/* Confirm показано всім навмисно: для USER сервіс відповість 403 через @PreAuthorize (демо критерію 7) */-->
+            <form class="inline" th:action="@{/bookings/{id}/confirm(id=${b.id()})}" method="post">
+                <button type="submit">Confirm</button>
+            </form>
+            <form class="inline" th:action="@{/bookings/{id}/cancel(id=${b.id()})}" method="post">
+                <button type="submit">Cancel</button>
+            </form>
+            <form class="inline" th:action="@{/bookings/{id}/delete(id=${b.id()})}" method="post">
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+</table>
+<p><small>Кнопка Confirm доступна всім навмисно: для USER метод сервісу відповість 403 через @PreAuthorize.</small></p>
+</body>
+</html>

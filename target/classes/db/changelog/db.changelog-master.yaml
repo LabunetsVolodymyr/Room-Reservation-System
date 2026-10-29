@@ -1,0 +1,7 @@
+# Головний файл Liquibase (changelog). Містить лише список підключених файлів міграцій.
+# Liquibase веде таблицю databasechangelog: які changeSet уже застосовані. Застосований changeSet
+# НЕ можна редагувати (зміниться контрольна сума -> помилка); нові зміни додаються НОВИМИ changeSet.
+databaseChangeLog:
+  - include:
+      # Шлях відносно classpath (src/main/resources). Файли міграцій підключаються в порядку переліку
+      file: db/changelog/changes/001-init-schema.yaml

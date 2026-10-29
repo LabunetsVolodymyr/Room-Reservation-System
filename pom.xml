@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- pom.xml (Project Object Model) - опис Maven-проєкту: залежності, версії, плагіни збірки. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- parent: успадковуємо від Spring Boot керування версіями (BOM). Завдяки цьому для більшості залежностей
+         версію вказувати не треба - Boot підбирає сумісні. Версія Boot = версія парента.
+         3.5.16 - остання OSS-версія гілки 3.5 (старіші мали відомі вразливості). -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.16</version>
+        <relativePath/> <!-- не шукати parent на диску, брати з репозиторію -->
+    </parent>
+
+    <!-- Координати нашого проєкту -->
+    <groupId>com.example</groupId>
+    <artifactId>booking</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>booking</name>
+
+    <properties>
+        <java.version>21</java.version>             <!-- версія Java для компіляції -->
+        <mapstruct.version>1.6.3</mapstruct.version> <!-- версія MapStruct (Boot її не керує, задаємо самі) -->
+    </properties>
+
+    <dependencies>
+        <!-- "starter" - набір залежностей під конкретну задачу. -->
+        <dependency> <!-- REST + Spring MVC + вбудований Tomcat + Jackson (JSON) -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency> <!-- шаблонізатор Thymeleaf для серверного HTML -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency> <!-- інтеграція Thymeleaf зі Spring Security: sec:authorize, sec:authentication -->
+            <groupId>org.thymeleaf.extras</groupId>
+            <artifactId>thymeleaf-extras-springsecurity6</artifactId>
+        </dependency>
+        <dependency> <!-- ядро Spring Security (фільтри, @PreAuthorize) -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency> <!-- OAuth2/OIDC КЛІЄНТ: логін користувачів через Keycloak (UI) -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
+        </dependency>
+        <dependency> <!-- OAuth2 RESOURCE SERVER: перевірка JWT у запитах до API -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+        <dependency> <!-- Spring Data JPA + Hibernate: робота з БД через Entity/Repository -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency> <!-- Bean Validation: @NotBlank, @Min, @Valid -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency> <!-- Liquibase: міграції схеми БД; запускається автоматично при старті -->
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+        </dependency>
+        <dependency> <!-- JDBC-драйвер PostgreSQL; runtime - потрібен лише під час виконання, не при компіляції -->
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency> <!-- API анотацій MapStruct (@Mapper, @Mapping) -->
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${mapstruct.version}</version>
+        </dependency>
+        <dependency> <!-- Lombok: генерує getters/setters/конструктори; optional - не потрапляє у залежності споживачів -->
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency> <!-- JUnit, Mockito, MockMvc для тестів; test - лише на етапі тестування -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency> <!-- допоміжні засоби для тестування безпеки (@WithMockUser, jwt()) -->
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Компілятор: підключаємо annotation processors, які ГЕНЕРУЮТЬ код під час компіляції.
+                 ПОРЯДОК ВАЖЛИВИЙ: спочатку Lombok (створює геттери/сетери), потім міст lombok-mapstruct-binding,
+                 і лише тоді MapStruct (йому потрібні вже згенеровані геттери/сетери). -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version> <!-- версію Lombok задає Spring Boot -->
+                        </path>
+                        <path> <!-- змушує Lombok і MapStruct працювати разом у правильному порядку -->
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok-mapstruct-binding</artifactId>
+                            <version>0.2.0</version>
+                        </path>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${mapstruct.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <!-- Плагін Spring Boot: mvn spring-boot:run та збірка виконуваного "fat jar" -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude> <!-- Lombok потрібен лише при компіляції, у фінальний jar не кладемо -->
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <!-- JaCoCo: вимірює покриття тестами. Звіт після "mvn test": target/site/jacoco/index.html.
+                 Перевірка порогу 60% виконується на фазі verify ("mvn verify"). -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.13</version>
+                <executions>
+                    <execution> <!-- підключає агент JaCoCo до JVM, у якій біжать тести -->
+                        <id>prepare-agent</id>
+                        <goals><goal>prepare-agent</goal></goals>
+                    </execution>
+                    <execution> <!-- формує HTML-звіт одразу після тестів -->
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals><goal>report</goal></goals>
+                    </execution>
+                    <execution> <!-- падає, якщо покриття інструкцій менше 60% -->
+                        <id>check</id>
+                        <phase>verify</phase>
+                        <goals><goal>check</goal></goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>INSTRUCTION</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.60</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
