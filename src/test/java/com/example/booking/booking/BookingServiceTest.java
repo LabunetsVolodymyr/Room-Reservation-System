@@ -128,6 +128,35 @@ class BookingServiceTest {
         assertThat(result).isEmpty();
     }
 
+    // ================= listByOwner (GET /api/bookings/mine) =================
+    @Test
+    void listByOwner_givenOwnerId_returnsOnlyThatOwnersBookingsEvenForPrivilegedUser() {
+        // Arrange
+        when(repository.findByOwnerIdOrderByStartTimeDesc(USER_ID))
+                .thenReturn(List.of(booking(1L, USER_ID, BookingStatus.PENDING)));
+
+        // Act
+        List<BookingDto> result = service.listByOwner(USER_ID);
+
+        // Assert: роль не перевіряється - ownerId вже визначено контролером (@CurrentUserId)
+        assertThat(result).extracting(BookingDto::ownerId).containsExactly(USER_ID);
+        verify(repository).findByOwnerIdOrderByStartTimeDesc(USER_ID);
+        verify(repository, never()).findAllByOrderByStartTimeDesc();
+        verifyNoInteractions(currentUser);
+    }
+
+    @Test
+    void listByOwner_ownerWithoutBookings_returnsEmptyList() {
+        // Arrange
+        when(repository.findByOwnerIdOrderByStartTimeDesc(OTHER_ID)).thenReturn(List.of());
+
+        // Act
+        List<BookingDto> result = service.listByOwner(OTHER_ID);
+
+        // Assert
+        assertThat(result).isEmpty();
+    }
+
     // ================= get =================
     @Test
     void get_ownBooking_returnsDtoWithRoomData() {

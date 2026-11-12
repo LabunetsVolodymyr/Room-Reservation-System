@@ -13,6 +13,7 @@
 * **Два рівні обмеження доступу:** правила в `SecurityFilterChain` (відповідь `403 Forbidden`) та анотації `@PreAuthorize` на методах сервісів (`AccessDeniedException`).
 * **Міграції бази даних:** схема з контролем версій через Liquibase (`ddl-auto: validate`).
 * **Мапінг Entity ↔ DTO:** MapStruct.
+* **Власні анотації (лабораторна №3):** `@ValidBookingSlot` (Bean Validation), `@PrivilegedWrite` (композитна), `@CurrentUserId` (резолвер аргументів MVC). Опис: [docs/lab3/README.md](docs/lab3/README.md).
 * **Веб-інтерфейс:** серверні HTML-шаблони Thymeleaf (CRUD для кімнат і бронювань).
 * **Контейнеризація:** Docker Compose з PostgreSQL і Keycloak (автоматичний імпорт realm з ролями та тестовими користувачами).
 * **Готова колекція запитів:** Postman-колекція з отриманням токенів і сценаріями 200 / 201 / 204 / 401 / 403 / 409.
@@ -97,12 +98,13 @@ mvn spring-boot:run
 | `/api/rooms` | `POST`, `PUT` | `ADMIN`, `MANAGER` | `SecurityFilterChain` + `@PreAuthorize` |
 | `/api/rooms/{id}` | `DELETE` | `ADMIN` | `SecurityFilterChain` + `@PreAuthorize` |
 | `/api/bookings` | `GET` | `USER` бачить свої, `ADMIN`/`MANAGER` усі | сервіс |
+| `/api/bookings/mine` | `GET` | будь-який автентифікований, лише свої | `@CurrentUserId` |
 | `/api/bookings` | `POST` | будь-який автентифікований | `SecurityFilterChain` |
 | `/api/bookings/{id}` | `PUT`, `DELETE`, `POST .../cancel` | власник або `ADMIN`/`MANAGER` | сервіс (`AccessDeniedException`) |
 | `/api/bookings/{id}/confirm` | `POST` | `ADMIN`, `MANAGER` | **лише `@PreAuthorize`** |
 | `/admin/**` | UI | `ADMIN` | `SecurityFilterChain` |
 
-Ендпоінт підтвердження бронювання навмисно захищений тільки через `@PreAuthorize`: фільтр пропускає будь-якого автентифікованого користувача, а метод сервісу блокує виклик без потрібної ролі.
+Ендпоінт підтвердження бронювання навмисно захищений тільки через `@PreAuthorize` (у коді — через композитну `@PrivilegedWrite`): фільтр пропускає будь-якого автентифікованого користувача, а метод сервісу блокує виклик без потрібної ролі.
 
 ## REST API
 
@@ -114,6 +116,7 @@ mvn spring-boot:run
 | `PUT` | `/api/rooms/{id}` | оновити кімнату |
 | `DELETE` | `/api/rooms/{id}` | видалити кімнату |
 | `GET` | `/api/bookings` | список бронювань |
+| `GET` | `/api/bookings/mine` | лише бронювання поточного користувача (`@CurrentUserId`) |
 | `GET` | `/api/bookings/{id}` | бронювання за id |
 | `POST` | `/api/bookings` | створити бронювання (`PENDING`) |
 | `PUT` | `/api/bookings/{id}` | змінити бронювання (лише `PENDING`) |
@@ -127,8 +130,8 @@ mvn spring-boot:run
 
 * `src/main/java/com/example/booking/`
     * `room/`: сутність, DTO, мапер, репозиторій, сервіс і контролер кімнат.
-    * `booking/`: сутність, статуси, DTO, мапер, репозиторій, сервіс і контролер бронювань.
-    * `security/`: `SecurityConfig` (два ланцюжки фільтрів), `JwtRoleConverter`, `CurrentUser`.
+    * `booking/`: сутність, статуси, DTO, мапер, репозиторій, сервіс і контролер бронювань; `booking/validation/` — `@ValidBookingSlot` і його валідатор.
+    * `security/`: `SecurityConfig` (два ланцюжки фільтрів), `JwtRoleConverter`, `CurrentUser`, анотації `@PrivilegedWrite`, `@CurrentUserId` і `CurrentUserIdArgumentResolver`.
     * `web/`: контролер Thymeleaf-інтерфейсу.
     * `common/`: глобальна обробка винятків для REST API.
 * `src/main/resources/`
@@ -165,7 +168,7 @@ mvn verify
 
 Принципи, яких дотримуються тести:
 
-* **Без Spring-контексту, БД і мережі.** Залежності замокано через `@Mock` / `@InjectMocks` (`MockitoExtension`), MapStruct-мапери створюються через `Mappers.getMapper(...)`.
+* **Без Spring-контексту, БД і мережі.** Залежності замокано через `@Mock` / `@InjectMocks` (`MockitoExtension`), MapStruct-мапери створюються через `Mappers.getMapper(...)`. Винятки — `PrivilegedWriteTest` і `BookingControllerMvcTest` (`@WebMvcTest`) з лабораторної №3: ці анотації обробляє лише Spring, тому вони піднімають мінімальний контекст без БД і мережі.
 * **Arrange-Act-Assert.** Кожен тест розділено коментарями `// Arrange`, `// Act`, `// Assert`. Для винятків використовується `catchThrowable(...)`, щоб дія і перевірка були окремими кроками.
 * **Назви у форматі `метод_сценарій_очікуванийРезультат`**, наприклад `create_endBeforeStart_throwsIllegalArgumentAndSavesNothing`.
 * **Перевірка побічних ефектів.** Виклики `repository.save(...)` / `delete(...)` перевіряються через `verify(...)`, `ArgumentCaptor` та `never()`.

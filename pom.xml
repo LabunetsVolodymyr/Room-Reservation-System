@@ -131,6 +131,26 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <!-- Як у лекційному car-parts-store: Mockito підключається до тестів як Java-агент.
+                 dependency:properties створює властивість ${org.mockito:mockito-core:jar} (шлях до jar),
+                 surefire додає її в argLine. @{argLine} зберігає агент JaCoCo, який виставляє prepare-agent.
+                 Прибирає попередження "Mockito is currently self-attaching..." -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals><goal>properties</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>@{argLine} -javaagent:"${org.mockito:mockito-core:jar}"</argLine>
+                </configuration>
+            </plugin>
             <!-- JaCoCo: вимірює покриття тестами. Звіт після "mvn test": target/site/jacoco/index.html.
                  Перевірка порогу 60% (інструкції + гілки) виконується на фазі verify ("mvn verify"). -->
             <plugin>

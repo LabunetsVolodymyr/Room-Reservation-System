@@ -6,7 +6,7 @@ import com.example.booking.room.RoomRepository;
 import com.example.booking.security.CurrentUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;     // "доступ заборонено" -> 403
-import org.springframework.security.access.prepost.PreAuthorize;
+import com.example.booking.security.PrivilegedWrite;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +33,11 @@ public class BookingService {
                 ? repository.findAllByOrderByStartTimeDesc()
                 : repository.findByOwnerIdOrderByStartTimeDesc(currentUser.id());
         return mapper.toDtoList(bookings);
+    }
+
+    /** Бронювання конкретного власника (для GET /api/bookings/mine; ownerId приходить з @CurrentUserId). */
+    public List<BookingDto> listByOwner(String ownerId) {
+        return mapper.toDtoList(repository.findByOwnerIdOrderByStartTimeDesc(ownerId));
     }
 
     public BookingDto get(Long id) {
@@ -70,8 +75,7 @@ public class BookingService {
     /** Другий рівень захисту: фільтр пропускає будь-якого автентифікованого, а метод - лише ADMIN/MANAGER. */
     // ВАЖЛИВО для критерію 7: у SecurityFilterChain для /api/bookings/{id}/confirm немає ролевого правила.
     // Запит від USER проходить фільтр, але проксі @PreAuthorize кидає AccessDeniedException ДО входу в метод.
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
-    @Transactional
+    @PrivilegedWrite // = @PreAuthorize("hasAnyRole('ADMIN','MANAGER')") + @Transactional
     public BookingDto confirm(Long id) {
         Booking booking = loadAccessible(id);
         if (booking.getStatus() != BookingStatus.PENDING) {

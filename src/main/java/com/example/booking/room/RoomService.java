@@ -2,6 +2,7 @@ package com.example.booking.room;
 
 import com.example.booking.common.NotFoundException;
 import lombok.RequiredArgsConstructor;                           // Lombok: конструктор для final-полів
+import com.example.booking.security.PrivilegedWrite;
 import org.springframework.security.access.prepost.PreAuthorize; // перевірка прав ДО виконання методу
 import org.springframework.stereotype.Service;                   // позначає бін бізнес-логіки
 import org.springframework.transaction.annotation.Transactional; // керування транзакціями
@@ -38,15 +39,13 @@ public class RoomService {
     // @PreAuthorize - ДРУГИЙ рівень захисту (перший - SecurityFilterChain). Spring створює проксі навколо
     // сервісу: перед викликом методу обчислює SpEL-вираз. Немає ролі -> AccessDeniedException -> 403.
     // Працює і для REST API, і для Thymeleaf UI, бо обидва викликають цей сервіс.
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
-    @Transactional // читання+запис: перевизначає readOnly з класу
+    @PrivilegedWrite // = @PreAuthorize("hasAnyRole('ADMIN','MANAGER')") + @Transactional
     public RoomDto create(RoomDto dto) {
         // saveAndFlush робить INSERT одразу, тож порушення UNIQUE (дубль назви) виявляється тут, а не при коміті
         return mapper.toDto(repository.saveAndFlush(mapper.toEntity(dto)));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
-    @Transactional
+    @PrivilegedWrite // = @PreAuthorize("hasAnyRole('ADMIN','MANAGER')") + @Transactional
     public RoomDto update(Long id, RoomDto dto) {
         Room room = find(id);          // завантажує сутність (стає "керованою" Hibernate)
         mapper.update(dto, room);      // копіює поля з DTO у цю сутність

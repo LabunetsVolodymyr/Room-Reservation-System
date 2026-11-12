@@ -1,5 +1,6 @@
 package com.example.booking.booking;
 
+import com.example.booking.security.CurrentUserId;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,13 @@ public class BookingController {
     @GetMapping
     public List<BookingDto> list() {
         return service.list();
+    }
+
+    // GET /api/bookings/mine -> лише МОЇ бронювання (навіть для ADMIN/MANAGER).
+    // userId підставляє CurrentUserIdArgumentResolver ("sub" з токена) - метод не знає, звідки він береться.
+    @GetMapping("/mine")
+    public List<BookingDto> mine(@CurrentUserId String userId) {
+        return service.listByOwner(userId);
     }
 
     // GET /api/bookings/5

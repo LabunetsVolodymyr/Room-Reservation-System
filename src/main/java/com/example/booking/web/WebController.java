@@ -88,7 +88,7 @@ public class WebController {
     @PostMapping("/bookings")
     String createBooking(@Valid @ModelAttribute BookingDto dto, BindingResult errors, RedirectAttributes ra) {
         if (errors.hasErrors()) {
-            ra.addFlashAttribute("error", "Invalid booking data");
+            ra.addFlashAttribute("error", firstError(errors, "Invalid booking data"));
             return "redirect:/bookings";
         }
         return run(ra, "/bookings", () -> bookingService.create(dto), "Booking created");
@@ -98,7 +98,7 @@ public class WebController {
     String updateBooking(@PathVariable Long id, @Valid @ModelAttribute BookingDto dto,
                          BindingResult errors, RedirectAttributes ra) {
         if (errors.hasErrors()) {
-            ra.addFlashAttribute("error", "Invalid booking data");
+            ra.addFlashAttribute("error", firstError(errors, "Invalid booking data"));
             return "redirect:/bookings";
         }
         return run(ra, "/bookings", () -> bookingService.update(id, dto), "Booking updated");
@@ -118,6 +118,14 @@ public class WebController {
     @PostMapping("/bookings/{id}/delete")
     String deleteBooking(@PathVariable Long id, RedirectAttributes ra) {
         return run(ra, "/bookings", () -> bookingService.delete(id), "Booking deleted");
+    }
+
+    // Текст першої помилки валідації (наприклад, від @ValidBookingSlot), щоб користувач бачив, ЩО саме не так
+    private static String firstError(BindingResult errors, String fallback) {
+        return errors.getAllErrors().stream()
+                .map(e -> e.getDefaultMessage())
+                .filter(m -> m != null && !m.isBlank())
+                .findFirst().orElse(fallback);
     }
 
     /** AccessDeniedException свідомо не ловимо: Spring Security покаже 403. */

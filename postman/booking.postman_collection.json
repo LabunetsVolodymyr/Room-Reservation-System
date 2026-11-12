@@ -436,6 +436,92 @@
           ]
         },
         {
+          "name": "GET my bookings as USER (@CurrentUserId, lab 3) -> 200",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/bookings/mine"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Only own bookings (ownerId = sub from token)\", () => {",
+                  "    const sub = JSON.parse(atob(pm.collectionVariables.get(\"user_token\").split(\".\")[1].replace(/-/g, \"+\").replace(/_/g, \"/\"))).sub;",
+                  "    pm.response.json().forEach(b => pm.expect(b.ownerId).to.eql(sub));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET my bookings as MANAGER (@CurrentUserId, lab 3) -> 200 []",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{manager_token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/bookings/mine"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Manager has no own bookings, although GET /api/bookings shows all\", () => pm.expect(pm.response.json()).to.eql([]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST booking 10h as USER -> 400 (@ValidBookingSlot, lab 3)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomId\": {{roomId}},\n  \"startTime\": \"2026-12-02T08:00:00\",\n  \"endTime\": \"2026-12-02T18:00:00\"\n}"
+            },
+            "url": "{{baseUrl}}/api/bookings"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Message explains the rule\", () => pm.expect(pm.response.json().detail).to.include(\"must not last longer than 8 hours\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "PUT booking as USER -> 200",
           "request": {
             "method": "PUT",

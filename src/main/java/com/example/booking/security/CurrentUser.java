@@ -20,7 +20,11 @@ public class CurrentUser {
 
     // Повертає "sub" - унікальний id користувача в Keycloak
     public String id() {
-        Object principal = authentication().getPrincipal();
+        return subjectOf(authentication().getPrincipal());
+    }
+
+    /** Спільна логіка "principal -> sub". Використовується також CurrentUserIdArgumentResolver (@CurrentUserId). */
+    static String subjectOf(Object principal) {
         if (principal instanceof Jwt jwt) {          // pattern matching: перевірка типу + приведення в одному рядку
             return jwt.getSubject();                 // claim "sub" із JWT
         }
