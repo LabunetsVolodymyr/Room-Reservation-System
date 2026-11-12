@@ -1,0 +1,12 @@
+AC4 — мутація: update: прибрано перевірку статусу PENDING (умову замінено на false)
+Змінений рядок у BookingService.java:
+55:        if (false) { // MUTATION: was booking.getStatus() != BookingStatus.PENDING
+
+=== mvn test -Dtest=BookingServiceTest (логіку зламано) ===
+[ERROR] Tests run: 36, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 2.845 s <<< FAILURE! -- in com.example.booking.booking.BookingServiceTest
+[ERROR] com.example.booking.booking.BookingServiceTest.update_confirmedBooking_throwsIllegalStateAndSavesNothing -- Time elapsed: 0.025 s <<< FAILURE!
+Expecting actual throwable to be an instance of:
+[ERROR]   BookingServiceTest.update_confirmedBooking_throwsIllegalStateAndSavesNothing:351 
+Expecting actual throwable to be an instance of:
+[ERROR] Tests run: 36, Failures: 1, Errors: 0, Skipped: 0
+[INFO] BUILD FAILURE

@@ -1,0 +1,36 @@
+AC4 — мутація: validateTimes: isAfter замінено на isBefore
+Змінений рядок у BookingService.java:
+114:        if (!dto.endTime().isBefore(dto.startTime())) {
+
+=== mvn test -Dtest=BookingServiceTest (логіку зламано) ===
+[ERROR] Tests run: 36, Failures: 6, Errors: 4, Skipped: 0, Time elapsed: 2.868 s <<< FAILURE! -- in com.example.booking.booking.BookingServiceTest
+[ERROR] com.example.booking.booking.BookingServiceTest.create_roomNotFound_throwsNotFoundAndSavesNothing -- Time elapsed: 0.021 s <<< FAILURE!
+Expecting actual throwable to be an instance of:
+[ERROR] com.example.booking.booking.BookingServiceTest.update_inactiveRoom_throwsIllegalArgumentAndSavesNothing -- Time elapsed: 0.058 s <<< FAILURE!
+Expecting message to be:
+[ERROR] com.example.booking.booking.BookingServiceTest.update_endBeforeStart_throwsIllegalArgument -- Time elapsed: 0.011 s <<< FAILURE!
+Expecting actual throwable to be an instance of:
+[ERROR] com.example.booking.booking.BookingServiceTest.create_endBeforeStart_throwsIllegalArgumentAndSavesNothing -- Time elapsed: 0.005 s <<< FAILURE!
+Expecting actual throwable to be an instance of:
+[ERROR] com.example.booking.booking.BookingServiceTest.update_roomNotFound_throwsNotFound -- Time elapsed: 0.004 s <<< FAILURE!
+Expecting actual throwable to be an instance of:
+[ERROR] com.example.booking.booking.BookingServiceTest.create_inactiveRoom_throwsIllegalArgumentAndSavesNothing -- Time elapsed: 0.007 s <<< FAILURE!
+Expecting message to be:
+[ERROR]   BookingServiceTest.create_endBeforeStart_throwsIllegalArgumentAndSavesNothing:245 
+Expecting actual throwable to be an instance of:
+[ERROR]   BookingServiceTest.create_inactiveRoom_throwsIllegalArgumentAndSavesNothing:290 
+Expecting message to be:
+[ERROR]   BookingServiceTest.create_roomNotFound_throwsNotFoundAndSavesNothing:274 
+Expecting actual throwable to be an instance of:
+[ERROR]   BookingServiceTest.update_endBeforeStart_throwsIllegalArgument:367 
+Expecting actual throwable to be an instance of:
+[ERROR]   BookingServiceTest.update_inactiveRoom_throwsIllegalArgumentAndSavesNothing:401 
+Expecting message to be:
+[ERROR]   BookingServiceTest.update_roomNotFound_throwsNotFound:384 
+Expecting actual throwable to be an instance of:
+[ERROR]   BookingServiceTest.create_clientSuppliesOwnerAndStatus_valuesAreIgnored:226 � IllegalArgument endTime must be after startTime
+[ERROR]   BookingServiceTest.create_validData_savesPendingBookingForCurrentUser:201 � IllegalArgument endTime must be after startTime
+[ERROR]   BookingServiceTest.update_differentRoom_assignsNewRoomToBooking:331 � IllegalArgument endTime must be after startTime
+[ERROR]   BookingServiceTest.update_pendingOwnBooking_updatesTimesAndSaves:308 � IllegalArgument endTime must be after startTime
+[ERROR] Tests run: 36, Failures: 6, Errors: 4, Skipped: 0
+[INFO] BUILD FAILURE

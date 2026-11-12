@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 /**
  * Unit-тести CurrentUser. Залежностей немає, тому мокати нічого: кладемо готовий Authentication у
@@ -74,8 +74,11 @@ class CurrentUserTest {
         // Arrange: principal - звичайний рядок, а не Jwt чи OidcUser
         authenticate(new TestingAuthenticationToken("plain-string", "pw", "ROLE_USER"));
 
-        // Act + Assert
-        assertThatThrownBy(currentUser::id)
+        // Act
+        Throwable thrown = catchThrowable(currentUser::id);
+
+        // Assert
+        assertThat(thrown)
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Unsupported principal");
     }
@@ -104,8 +107,11 @@ class CurrentUserTest {
         // Arrange
         authenticate(new TestingAuthenticationToken("someone", "pw", "ROLE_USER", "ROLE_ADMIN"));
 
-        // Act + Assert
-        assertThat(currentUser.isPrivileged()).isTrue();
+        // Act
+        var result = currentUser.isPrivileged();
+
+        // Assert
+        assertThat(result).isTrue();
     }
 
     @Test
@@ -113,7 +119,10 @@ class CurrentUserTest {
         // Arrange: межовий випадок - порожній набір ролей
         authenticate(new TestingAuthenticationToken("someone", "pw"));
 
-        // Act + Assert
-        assertThat(currentUser.isPrivileged()).isFalse();
+        // Act
+        var result = currentUser.isPrivileged();
+
+        // Assert
+        assertThat(result).isFalse();
     }
 }

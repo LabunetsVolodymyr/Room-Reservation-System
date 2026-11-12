@@ -43,8 +43,11 @@ class JwtRoleConverterTest {
         // Arrange
         Map<String, Object> claims = Map.of("sub", "abc");
 
-        // Act + Assert
-        assertThat(JwtRoleConverter.extractRoles(claims)).isEmpty();
+        // Act
+        var result = JwtRoleConverter.extractRoles(claims);
+
+        // Assert
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -53,8 +56,11 @@ class JwtRoleConverterTest {
         Map<String, Object> claims = new HashMap<>();
         claims.put("realm_access", Map.of("other", "value"));
 
-        // Act + Assert
-        assertThat(JwtRoleConverter.extractRoles(claims)).isEmpty();
+        // Act
+        var result = JwtRoleConverter.extractRoles(claims);
+
+        // Assert
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -63,8 +69,11 @@ class JwtRoleConverterTest {
         Map<String, Object> claims = new HashMap<>();
         claims.put("realm_access", "oops");
 
-        // Act + Assert
-        assertThat(JwtRoleConverter.extractRoles(claims)).isEmpty();
+        // Act
+        var result = JwtRoleConverter.extractRoles(claims);
+
+        // Assert
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -72,8 +81,11 @@ class JwtRoleConverterTest {
         // Arrange: межове значення - порожній список ролей
         Map<String, Object> claims = claimsWithRoles();
 
-        // Act + Assert
-        assertThat(JwtRoleConverter.extractRoles(claims)).isEmpty();
+        // Act
+        var result = JwtRoleConverter.extractRoles(claims);
+
+        // Assert
+        assertThat(result).isEmpty();
     }
 
     // ================= extractRoles(String accessToken) =================

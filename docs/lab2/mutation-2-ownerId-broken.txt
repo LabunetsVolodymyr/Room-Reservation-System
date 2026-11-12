@@ -1,0 +1,16 @@
+AC4 — мутація: create: прибрано booking.setOwnerId(currentUser.id())
+Змінений рядок у BookingService.java:
+47:        /* MUTATION */ // booking.setOwnerId(currentUser.id());            // власник = sub з токена (не з тіла запиту!)
+
+=== mvn test -Dtest=BookingServiceTest (логіку зламано) ===
+[ERROR] Tests run: 36, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 3.087 s <<< FAILURE! -- in com.example.booking.booking.BookingServiceTest
+[ERROR] com.example.booking.booking.BookingServiceTest.create_validData_savesPendingBookingForCurrentUser -- Time elapsed: 0.016 s <<< FAILURE!
+expected: "user-1"
+[ERROR] com.example.booking.booking.BookingServiceTest.create_clientSuppliesOwnerAndStatus_valuesAreIgnored -- Time elapsed: 0.003 s <<< FAILURE!
+expected: "user-1"
+[ERROR]   BookingServiceTest.create_clientSuppliesOwnerAndStatus_valuesAreIgnored:231 
+expected: "user-1"
+[ERROR]   BookingServiceTest.create_validData_savesPendingBookingForCurrentUser:207 
+expected: "user-1"
+[ERROR] Tests run: 36, Failures: 2, Errors: 0, Skipped: 0
+[INFO] BUILD FAILURE

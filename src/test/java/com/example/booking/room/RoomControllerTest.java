@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,8 +48,11 @@ class RoomControllerTest {
         RoomDto room = new RoomDto(1L, "Alpha", 6, null, true, CREATED);
         when(service.get(1L)).thenReturn(room);
 
-        // Act + Assert
-        assertThat(controller.get(1L)).isEqualTo(room);
+        // Act
+        var result = controller.get(1L);
+
+        // Assert
+        assertThat(result).isEqualTo(room);
     }
 
     @Test
@@ -57,8 +60,11 @@ class RoomControllerTest {
         // Arrange: контролер не обробляє помилку, це робить GlobalExceptionHandler
         when(service.get(99L)).thenThrow(new NotFoundException("Room 99 not found"));
 
-        // Act + Assert
-        assertThatThrownBy(() -> controller.get(99L)).isInstanceOf(NotFoundException.class);
+        // Act
+        Throwable thrown = catchThrowable(() -> controller.get(99L));
+
+        // Assert
+        assertThat(thrown).isInstanceOf(NotFoundException.class);
     }
 
     @Test
@@ -84,8 +90,11 @@ class RoomControllerTest {
         RoomDto updated = new RoomDto(1L, "Alpha-2", 8, null, true, CREATED);
         when(service.update(1L, request)).thenReturn(updated);
 
-        // Act + Assert
-        assertThat(controller.update(1L, request)).isEqualTo(updated);
+        // Act
+        var result = controller.update(1L, request);
+
+        // Assert
+        assertThat(result).isEqualTo(updated);
     }
 
     @Test

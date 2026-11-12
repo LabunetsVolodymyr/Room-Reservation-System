@@ -1,0 +1,14 @@
+# Результати збірки Maven (генеруються заново при кожній збірці)
+target/
+
+# IntelliJ IDEA: локальні файли модуля (решту .idea/ фільтрує .idea/.gitignore)
+*.iml
+out/
+
+# Локальні секрети (паролі БД тощо) - не комітимо
+.env
+src/main/resources/application-local.yml
+
+# Системні файли
+.DS_Store
+Thumbs.db

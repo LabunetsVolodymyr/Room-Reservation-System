@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
@@ -97,8 +97,11 @@ class RoomServiceTest {
         // Arrange
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.get(99L))
+        // Act
+        Throwable thrown = catchThrowable(() -> service.get(99L));
+
+        // Assert
+        assertThat(thrown)
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Room 99 not found");
     }
@@ -146,8 +149,11 @@ class RoomServiceTest {
         // Arrange: БД відхиляє дубль назви
         when(repository.saveAndFlush(any(Room.class))).thenThrow(new DataIntegrityViolationException("duplicate"));
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.create(new RoomDto(null, "Alpha", 6, null, true, null)))
+        // Act
+        Throwable thrown = catchThrowable(() -> service.create(new RoomDto(null, "Alpha", 6, null, true, null)));
+
+        // Assert
+        assertThat(thrown)
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
 
@@ -180,8 +186,11 @@ class RoomServiceTest {
         // Arrange
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.update(99L, new RoomDto(null, "X", 1, null, true, null)))
+        // Act
+        Throwable thrown = catchThrowable(() -> service.update(99L, new RoomDto(null, "X", 1, null, true, null)));
+
+        // Assert
+        assertThat(thrown)
                 .isInstanceOf(NotFoundException.class);
         verify(repository, never()).saveAndFlush(any(Room.class));
     }
@@ -207,8 +216,11 @@ class RoomServiceTest {
         // Arrange
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.delete(99L)).isInstanceOf(NotFoundException.class);
+        // Act
+        Throwable thrown = catchThrowable(() -> service.delete(99L));
+
+        // Assert
+        assertThat(thrown).isInstanceOf(NotFoundException.class);
         verify(repository, never()).delete(any(Room.class));
     }
 
@@ -218,7 +230,10 @@ class RoomServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(room(1L, "Alpha", 6, "Small", true)));
         doThrow(new DataIntegrityViolationException("fk")).when(repository).flush();
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.delete(1L)).isInstanceOf(DataIntegrityViolationException.class);
+        // Act
+        Throwable thrown = catchThrowable(() -> service.delete(1L));
+
+        // Assert
+        assertThat(thrown).isInstanceOf(DataIntegrityViolationException.class);
     }
 }

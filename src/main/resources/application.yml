@@ -10,8 +10,8 @@ spring:
 
   datasource:                 # підключення до PostgreSQL
     url: jdbc:postgresql://localhost:5432/booking   # JDBC-адреса: хост localhost, порт 5432, база "booking"
-    username: postgres
-    password: alisVOVA26
+    username: ${DB_USERNAME:postgres}   # з env-змінної DB_USERNAME; за замовчуванням - як у docker-compose.yml
+    password: ${DB_PASSWORD:alisVOVA26}   # з env-змінної DB_PASSWORD; справжній пароль у git не зберігаємо
 
   jpa:
     open-in-view: false       # вимикає Open Session In View: сесія Hibernate живе лише в межах сервісу (чистіша архітектура)

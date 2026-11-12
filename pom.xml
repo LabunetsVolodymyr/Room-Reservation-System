@@ -132,7 +132,7 @@
                 </configuration>
             </plugin>
             <!-- JaCoCo: вимірює покриття тестами. Звіт після "mvn test": target/site/jacoco/index.html.
-                 Перевірка порогу 60% виконується на фазі verify ("mvn verify"). -->
+                 Перевірка порогу 60% (інструкції + гілки) виконується на фазі verify ("mvn verify"). -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -147,7 +147,7 @@
                         <phase>test</phase>
                         <goals><goal>report</goal></goals>
                     </execution>
-                    <execution> <!-- падає, якщо покриття інструкцій менше 60% -->
+                    <execution> <!-- падає, якщо покриття інструкцій або гілок менше 60% -->
                         <id>check</id>
                         <phase>verify</phase>
                         <goals><goal>check</goal></goals>
@@ -158,6 +158,11 @@
                                     <limits>
                                         <limit>
                                             <counter>INSTRUCTION</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.60</minimum>
+                                        </limit>
+                                        <limit> <!-- і покриття гілок (if/else, тернарні оператори) теж не менше 60% -->
+                                            <counter>BRANCH</counter>
                                             <value>COVEREDRATIO</value>
                                             <minimum>0.60</minimum>
                                         </limit>

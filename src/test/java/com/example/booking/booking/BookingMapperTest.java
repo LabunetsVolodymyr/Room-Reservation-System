@@ -46,12 +46,23 @@ class BookingMapperTest {
 
     @Test
     void toDto_nullBooking_returnsNull() {
-        assertThat(mapper.toDto(null)).isNull();
+        // Act
+        var result = mapper.toDto(null);
+
+        // Assert
+        assertThat(result).isNull();
     }
 
     @Test
     void toDtoList_twoBookings_mapsEachElement() {
-        assertThat(mapper.toDtoList(List.of(booking(), booking()))).hasSize(2);
+        // Arrange
+        List<Booking> bookings = List.of(booking(), booking());
+
+        // Act
+        List<BookingDto> result = mapper.toDtoList(bookings);
+
+        // Assert
+        assertThat(result).hasSize(2);
     }
 
     @Test

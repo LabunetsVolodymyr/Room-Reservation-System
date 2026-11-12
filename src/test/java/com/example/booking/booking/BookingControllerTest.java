@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -40,8 +40,11 @@ class BookingControllerTest {
         List<BookingDto> bookings = List.of(dto(1L, BookingStatus.PENDING));
         when(service.list()).thenReturn(bookings);
 
-        // Act + Assert
-        assertThat(controller.list()).isEqualTo(bookings);
+        // Act
+        var result = controller.list();
+
+        // Assert
+        assertThat(result).isEqualTo(bookings);
     }
 
     @Test
@@ -49,8 +52,11 @@ class BookingControllerTest {
         // Arrange
         when(service.get(1L)).thenReturn(dto(1L, BookingStatus.PENDING));
 
-        // Act + Assert
-        assertThat(controller.get(1L).id()).isEqualTo(1L);
+        // Act
+        var result = controller.get(1L).id();
+
+        // Assert
+        assertThat(result).isEqualTo(1L);
     }
 
     @Test
@@ -58,8 +64,11 @@ class BookingControllerTest {
         // Arrange
         when(service.get(99L)).thenThrow(new NotFoundException("Booking 99 not found"));
 
-        // Act + Assert
-        assertThatThrownBy(() -> controller.get(99L)).isInstanceOf(NotFoundException.class);
+        // Act
+        Throwable thrown = catchThrowable(() -> controller.get(99L));
+
+        // Assert
+        assertThat(thrown).isInstanceOf(NotFoundException.class);
     }
 
     @Test
@@ -85,8 +94,11 @@ class BookingControllerTest {
         BookingDto updated = dto(1L, BookingStatus.PENDING);
         when(service.update(1L, request)).thenReturn(updated);
 
-        // Act + Assert
-        assertThat(controller.update(1L, request)).isEqualTo(updated);
+        // Act
+        var result = controller.update(1L, request);
+
+        // Assert
+        assertThat(result).isEqualTo(updated);
     }
 
     @Test
@@ -104,8 +116,11 @@ class BookingControllerTest {
         // Arrange
         when(service.confirm(1L)).thenReturn(dto(1L, BookingStatus.CONFIRMED));
 
-        // Act + Assert
-        assertThat(controller.confirm(1L).status()).isEqualTo(BookingStatus.CONFIRMED);
+        // Act
+        var result = controller.confirm(1L).status();
+
+        // Assert
+        assertThat(result).isEqualTo(BookingStatus.CONFIRMED);
     }
 
     @Test
@@ -113,7 +128,10 @@ class BookingControllerTest {
         // Arrange
         when(service.cancel(1L)).thenReturn(dto(1L, BookingStatus.CANCELLED));
 
-        // Act + Assert
-        assertThat(controller.cancel(1L).status()).isEqualTo(BookingStatus.CANCELLED);
+        // Act
+        var result = controller.cancel(1L).status();
+
+        // Assert
+        assertThat(result).isEqualTo(BookingStatus.CANCELLED);
     }
 }

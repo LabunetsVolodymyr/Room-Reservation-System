@@ -50,7 +50,7 @@ docker compose up -d
 
 Зачекайте близько хвилини, поки Keycloak запуститься. Перевірка: http://localhost:8180/realms/booking/.well-known/openid-configuration має повернути JSON.
 
-> **Якщо використовуєте власну базу PostgreSQL**, запускайте лише Keycloak (`docker compose up -d keycloak`), створіть порожню базу `booking` і вкажіть свої `url`, `username`, `password` у `src/main/resources/application.yml`. Не комітьте в репозиторій справжній пароль.
+> **Якщо використовуєте власну базу PostgreSQL**, запускайте лише Keycloak (`docker compose up -d keycloak`), створіть порожню базу `booking` і задайте змінні оточення `DB_USERNAME` та `DB_PASSWORD` (в IntelliJ IDEA: *Run → Edit Configurations → Environment variables*, наприклад `DB_USERNAME=postgres;DB_PASSWORD=...`). Без них використовуються значення з `docker-compose.yml` (`booking` / `booking`). Справжній пароль у `application.yml` не записуйте і не комітьте.
 
 ### 2. Запуск застосунку (розробка)
 
@@ -151,8 +151,34 @@ mvn spring-boot:run
 
 ## Виконання тестів
 
-Автоматизовані модульні та інтеграційні тести планується додати в наступних лабораторних роботах. Після їх появи запуск:
+Модульні тести (лабораторна №2) написані на JUnit 5 + Mockito + AssertJ і лежать у `src/test/java` у тих самих пакетах, що й код, який вони перевіряють.
 
 ```
+# лише тести + HTML-звіт покриття
 mvn test
+
+# тести + перевірка порогу покриття (мінімум 60% інструкцій і 60% гілок)
+mvn verify
 ```
+
+Звіт JaCoCo: `target/site/jacoco/index.html`. Якщо покриття нижче порогу, `mvn verify` завершується помилкою.
+
+Принципи, яких дотримуються тести:
+
+* **Без Spring-контексту, БД і мережі.** Залежності замокано через `@Mock` / `@InjectMocks` (`MockitoExtension`), MapStruct-мапери створюються через `Mappers.getMapper(...)`.
+* **Arrange-Act-Assert.** Кожен тест розділено коментарями `// Arrange`, `// Act`, `// Assert`. Для винятків використовується `catchThrowable(...)`, щоб дія і перевірка були окремими кроками.
+* **Назви у форматі `метод_сценарій_очікуванийРезультат`**, наприклад `create_endBeforeStart_throwsIllegalArgumentAndSavesNothing`.
+* **Перевірка побічних ефектів.** Виклики `repository.save(...)` / `delete(...)` перевіряються через `verify(...)`, `ArgumentCaptor` та `never()`.
+* **Детермінованість.** Час задається константами (`LocalDateTime.of(...)`), без `Thread.sleep` і без залежності від порядку тестів. `SecurityContextHolder` очищується після кожного тесту.
+
+### Доказ, що тести перевіряють логіку (AC4)
+
+Щоб показати, що тест справді ловить помилку, тимчасово ламаємо логіку, запускаємо тести, робимо скріншот і повертаємо код назад:
+
+| Зміна в коді | Тест, який має впасти |
+|---|---|
+| `BookingService.validateTimes`: `isAfter` → `isBefore` | 10 тестів, зокрема `create_endBeforeStart_throwsIllegalArgumentAndSavesNothing`, `create_validData_savesPendingBookingForCurrentUser` |
+| `BookingService.create`: прибрати `booking.setOwnerId(currentUser.id())` | `create_validData_savesPendingBookingForCurrentUser`, `create_clientSuppliesOwnerAndStatus_valuesAreIgnored` |
+| `BookingService.update`: прибрати перевірку статусу `PENDING` | `update_confirmedBooking_throwsIllegalStateAndSavesNothing` |
+
+Вивід Maven для кожної мутації (до і після відновлення), повна відповідність критеріям лабораторної №2 і список знайдених проблем — у [docs/lab2/README.md](docs/lab2/README.md).

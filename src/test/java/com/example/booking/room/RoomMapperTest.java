@@ -40,7 +40,11 @@ class RoomMapperTest {
 
     @Test
     void toDto_nullRoom_returnsNull() {
-        assertThat(mapper.toDto(null)).isNull();
+        // Act
+        var result = mapper.toDto(null);
+
+        // Assert
+        assertThat(result).isNull();
     }
 
     @Test

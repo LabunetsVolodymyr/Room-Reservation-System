@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -164,8 +164,11 @@ class BookingServiceTest {
         // Arrange
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.get(99L))
+        // Act
+        Throwable thrown = catchThrowable(() -> service.get(99L));
+
+        // Assert
+        assertThat(thrown)
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Booking 99 not found");
     }
@@ -177,8 +180,11 @@ class BookingServiceTest {
         when(currentUser.id()).thenReturn(USER_ID);
         when(repository.findById(1L)).thenReturn(Optional.of(booking(1L, OTHER_ID, BookingStatus.PENDING)));
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.get(1L))
+        // Act
+        Throwable thrown = catchThrowable(() -> service.get(1L));
+
+        // Assert
+        assertThat(thrown)
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessage("Not your booking");
     }
@@ -231,8 +237,11 @@ class BookingServiceTest {
         // Arrange
         BookingDto invalid = request(1L, END, START);
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.create(invalid))
+        // Act
+        Throwable thrown = catchThrowable(() -> service.create(invalid));
+
+        // Assert
+        assertThat(thrown)
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("endTime must be after startTime");
         verifyNoInteractions(repository, roomRepository);
@@ -243,8 +252,11 @@ class BookingServiceTest {
         // Arrange: межове значення - нульова тривалість
         BookingDto zeroLength = request(1L, START, START);
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.create(zeroLength))
+        // Act
+        Throwable thrown = catchThrowable(() -> service.create(zeroLength));
+
+        // Assert
+        assertThat(thrown)
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("endTime must be after startTime");
     }
@@ -254,8 +266,11 @@ class BookingServiceTest {
         // Arrange
         when(roomRepository.findById(99L)).thenReturn(Optional.empty());
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.create(request(99L, START, END)))
+        // Act
+        Throwable thrown = catchThrowable(() -> service.create(request(99L, START, END)));
+
+        // Assert
+        assertThat(thrown)
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Room 99 not found");
         verify(repository, never()).save(any(Booking.class));
@@ -266,8 +281,11 @@ class BookingServiceTest {
         // Arrange
         when(roomRepository.findById(1L)).thenReturn(Optional.of(room(1L, false)));
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.create(request(1L, START, END)))
+        // Act
+        Throwable thrown = catchThrowable(() -> service.create(request(1L, START, END)));
+
+        // Assert
+        assertThat(thrown)
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Room is not active");
         verify(repository, never()).save(any(Booking.class));
@@ -325,8 +343,11 @@ class BookingServiceTest {
         when(currentUser.isPrivileged()).thenReturn(true);
         when(repository.findById(1L)).thenReturn(Optional.of(booking(1L, USER_ID, BookingStatus.CONFIRMED)));
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.update(1L, request(1L, START, END)))
+        // Act
+        Throwable thrown = catchThrowable(() -> service.update(1L, request(1L, START, END)));
+
+        // Assert
+        assertThat(thrown)
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Only PENDING bookings can be edited");
         verify(repository, never()).save(any(Booking.class));
@@ -338,8 +359,11 @@ class BookingServiceTest {
         when(currentUser.isPrivileged()).thenReturn(true);
         when(repository.findById(1L)).thenReturn(Optional.of(booking(1L, USER_ID, BookingStatus.PENDING)));
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.update(1L, request(1L, END, START)))
+        // Act
+        Throwable thrown = catchThrowable(() -> service.update(1L, request(1L, END, START)));
+
+        // Assert
+        assertThat(thrown)
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("endTime must be after startTime");
         verify(repository, never()).save(any(Booking.class));
@@ -352,8 +376,11 @@ class BookingServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(booking(1L, USER_ID, BookingStatus.PENDING)));
         when(roomRepository.findById(99L)).thenReturn(Optional.empty());
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.update(1L, request(99L, START, END)))
+        // Act
+        Throwable thrown = catchThrowable(() -> service.update(1L, request(99L, START, END)));
+
+        // Assert
+        assertThat(thrown)
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Room 99 not found");
         verify(repository, never()).save(any(Booking.class));
@@ -365,8 +392,11 @@ class BookingServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(booking(1L, USER_ID, BookingStatus.PENDING)));
         when(roomRepository.findById(2L)).thenReturn(Optional.of(room(2L, false)));
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.update(1L, request(2L, START, END)))
+        // Act
+        Throwable thrown = catchThrowable(() -> service.update(1L, request(2L, START, END)));
+
+        // Assert
+        assertThat(thrown)
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Room is not active");
         verify(repository, never()).save(any(Booking.class));
@@ -378,8 +408,11 @@ class BookingServiceTest {
         when(currentUser.id()).thenReturn(USER_ID);
         when(repository.findById(1L)).thenReturn(Optional.of(booking(1L, OTHER_ID, BookingStatus.PENDING)));
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.update(1L, request(1L, START, END)))
+        // Act
+        Throwable thrown = catchThrowable(() -> service.update(1L, request(1L, START, END)));
+
+        // Assert
+        assertThat(thrown)
                 .isInstanceOf(AccessDeniedException.class);
         verify(repository, never()).save(any(Booking.class));
     }
@@ -389,8 +422,11 @@ class BookingServiceTest {
         // Arrange
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.update(99L, request(1L, START, END)))
+        // Act
+        Throwable thrown = catchThrowable(() -> service.update(99L, request(1L, START, END)));
+
+        // Assert
+        assertThat(thrown)
                 .isInstanceOf(NotFoundException.class);
     }
 
@@ -410,6 +446,22 @@ class BookingServiceTest {
         verify(repository).delete(existing);
     }
 
+    /** Фіксує ПОТОЧНУ поведінку (docs/lab2/README.md, проблема №2): статус перед видаленням не перевіряється. */
+    @Test
+    void delete_confirmedOwnBooking_currentlyDeletesIt() {
+        // Arrange
+        Booking existing = booking(1L, USER_ID, BookingStatus.CONFIRMED);
+        when(currentUser.isPrivileged()).thenReturn(false);
+        when(currentUser.id()).thenReturn(USER_ID);
+        when(repository.findById(1L)).thenReturn(Optional.of(existing));
+
+        // Act
+        service.delete(1L);
+
+        // Assert
+        verify(repository).delete(existing);
+    }
+
     @Test
     void delete_foreignBookingAsRegularUser_throwsAccessDeniedAndDeletesNothing() {
         // Arrange
@@ -417,8 +469,11 @@ class BookingServiceTest {
         when(currentUser.id()).thenReturn(USER_ID);
         when(repository.findById(1L)).thenReturn(Optional.of(booking(1L, OTHER_ID, BookingStatus.PENDING)));
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.delete(1L)).isInstanceOf(AccessDeniedException.class);
+        // Act
+        Throwable thrown = catchThrowable(() -> service.delete(1L));
+
+        // Assert
+        assertThat(thrown).isInstanceOf(AccessDeniedException.class);
         verify(repository, never()).delete(any(Booking.class));
     }
 
@@ -427,8 +482,11 @@ class BookingServiceTest {
         // Arrange
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.delete(99L)).isInstanceOf(NotFoundException.class);
+        // Act
+        Throwable thrown = catchThrowable(() -> service.delete(99L));
+
+        // Assert
+        assertThat(thrown).isInstanceOf(NotFoundException.class);
         verify(repository, never()).delete(any(Booking.class));
     }
 
@@ -456,11 +514,30 @@ class BookingServiceTest {
         when(currentUser.isPrivileged()).thenReturn(true);
         when(repository.findById(1L)).thenReturn(Optional.of(existing));
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.confirm(1L))
+        // Act
+        Throwable thrown = catchThrowable(() -> service.confirm(1L));
+
+        // Assert
+        assertThat(thrown)
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Only PENDING bookings can be confirmed");
         assertThat(existing.getStatus()).isEqualTo(status);
+    }
+
+    @Test
+    void confirm_foreignBookingAsRegularUser_throwsAccessDeniedAndKeepsStatus() {
+        // Arrange: у Unit-тесті @PreAuthorize не діє, тому перевіряємо другий бар'єр - loadAccessible
+        Booking existing = booking(1L, OTHER_ID, BookingStatus.PENDING);
+        when(currentUser.isPrivileged()).thenReturn(false);
+        when(currentUser.id()).thenReturn(USER_ID);
+        when(repository.findById(1L)).thenReturn(Optional.of(existing));
+
+        // Act
+        Throwable thrown = catchThrowable(() -> service.confirm(1L));
+
+        // Assert
+        assertThat(thrown).isInstanceOf(AccessDeniedException.class);
+        assertThat(existing.getStatus()).isEqualTo(BookingStatus.PENDING);
     }
 
     @Test
@@ -468,8 +545,11 @@ class BookingServiceTest {
         // Arrange
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.confirm(99L)).isInstanceOf(NotFoundException.class);
+        // Act
+        Throwable thrown = catchThrowable(() -> service.confirm(99L));
+
+        // Assert
+        assertThat(thrown).isInstanceOf(NotFoundException.class);
     }
 
     // ================= cancel =================
@@ -511,9 +591,34 @@ class BookingServiceTest {
         when(currentUser.id()).thenReturn(USER_ID);
         when(repository.findById(1L)).thenReturn(Optional.of(existing));
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.cancel(1L)).isInstanceOf(AccessDeniedException.class);
+        // Act
+        Throwable thrown = catchThrowable(() -> service.cancel(1L));
+
+        // Assert
+        assertThat(thrown).isInstanceOf(AccessDeniedException.class);
         assertThat(existing.getStatus()).isEqualTo(BookingStatus.PENDING);
+    }
+
+    /**
+     * Фіксує ПОТОЧНУ поведінку, знайдену під час тестування (див. docs/lab2/README.md, проблема №1):
+     * cancel() не перевіряє статус, тож уже підтверджене або скасоване бронювання "скасовується" ще раз.
+     * Якщо логіку виправлять (дозволять скасовувати лише PENDING), цей тест треба замінити на очікування винятку.
+     */
+    @ParameterizedTest
+    @EnumSource(value = BookingStatus.class, names = {"CONFIRMED", "CANCELLED"})
+    void cancel_nonPendingOwnBooking_currentlySetsStatusCancelled(BookingStatus status) {
+        // Arrange
+        Booking existing = booking(1L, USER_ID, status);
+        when(currentUser.isPrivileged()).thenReturn(false);
+        when(currentUser.id()).thenReturn(USER_ID);
+        when(repository.findById(1L)).thenReturn(Optional.of(existing));
+
+        // Act
+        BookingDto result = service.cancel(1L);
+
+        // Assert
+        assertThat(result.status()).isEqualTo(BookingStatus.CANCELLED);
+        assertThat(existing.getStatus()).isEqualTo(BookingStatus.CANCELLED);
     }
 
     @Test
@@ -521,7 +626,10 @@ class BookingServiceTest {
         // Arrange
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
-        // Act + Assert
-        assertThatThrownBy(() -> service.cancel(99L)).isInstanceOf(NotFoundException.class);
+        // Act
+        Throwable thrown = catchThrowable(() -> service.cancel(99L));
+
+        // Assert
+        assertThat(thrown).isInstanceOf(NotFoundException.class);
     }
 }
