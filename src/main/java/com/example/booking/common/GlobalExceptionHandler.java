@@ -1,5 +1,8 @@
 package com.example.booking.common;
 
+import com.example.booking.aop.RateLimitExceededException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.dao.DataIntegrityViolationException;   // порушення обмежень БД (unique, FK)
 import org.springframework.http.HttpStatus;                       // enum HTTP-статусів
 import org.springframework.http.ProblemDetail;                    // стандартний формат помилки RFC 7807 (Spring 6+)
@@ -40,6 +43,15 @@ public class GlobalExceptionHandler {
                 .map(f -> f.getField() + ": " + f.getDefaultMessage())
                 .reduce((a, b) -> a + "; " + b).orElse("Validation failed");
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, msg);
+    }
+
+    // 429 Too Many Requests: спрацював @RateLimited (лаба 4). Окремий обробник важливіший за загальний
+    // IllegalStateException нижче (Spring обирає найточніший тип). Retry-After каже клієнту, скільки чекати.
+    @ExceptionHandler(RateLimitExceededException.class)
+    ResponseEntity<ProblemDetail> tooManyRequests(RateLimitExceededException e) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(e.getRetryAfterSeconds()))
+                .body(ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, e.getMessage()));
     }
 
     // 409 Conflict: конфлікт стану (редагування не-PENDING бронювання) або порушення обмеження БД (дубль назви кімнати)

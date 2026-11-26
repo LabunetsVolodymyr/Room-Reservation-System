@@ -1,5 +1,7 @@
 package com.example.booking.booking;
 
+import com.example.booking.aop.Audited;
+import com.example.booking.aop.RateLimited;
 import com.example.booking.common.NotFoundException;
 import com.example.booking.room.Room;
 import com.example.booking.room.RoomRepository;
@@ -44,6 +46,7 @@ public class BookingService {
         return mapper.toDto(loadAccessible(id)); // loadAccessible перевіряє, що бронювання доступне цьому користувачу
     }
 
+    @RateLimited(maxCalls = 5, perSeconds = 60)                                                                                                                                                                                                        // не більше 5 нових бронювань на хвилину від одного користувача
     @Transactional
     public BookingDto create(BookingDto dto) {
         validateTimes(dto);                              // endTime має бути після startTime
@@ -67,30 +70,43 @@ public class BookingService {
         return mapper.toDto(repository.save(booking));
     }
 
+    @Audited("BOOKING_DELETED") // запис у журнал аудиту після успішного видалення
     @Transactional
     public void delete(Long id) {
         repository.delete(loadAccessible(id));
     }
 
-    /** Другий рівень захисту: фільтр пропускає будь-якого автентифікованого, а метод - лише ADMIN/MANAGER. */
-    // ВАЖЛИВО для критерію 7: у SecurityFilterChain для /api/bookings/{id}/confirm немає ролевого правила.
-    // Запит від USER проходить фільтр, але проксі @PreAuthorize кидає AccessDeniedException ДО входу в метод.
-    @PrivilegedWrite // = @PreAuthorize("hasAnyRole('ADMIN','MANAGER')") + @Transactional
+    /** Другий рівень захисту: фільтр пропускає будь-якого автентифікованого, а метод - лише ADMIN/MANAGER. */                                                                                                                         // у SecurityFilterChain для /api/bookings/{id}/confirm немає ролевого правила. // Запит від USER проходить фільтр, але проксі @PreAuthorize кидає AccessDeniedException ДО входу в метод.
+    @PrivilegedWrite                                                                                                                                                                                                                   // = @PreAuthorize("hasAnyRole('ADMIN','MANAGER')") + @Transactional
+    @Audited("BOOKING_CONFIRMED")
     public BookingDto confirm(Long id) {
         Booking booking = loadAccessible(id);
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new IllegalStateException("Only PENDING bookings can be confirmed");
         }
-        booking.setStatus(BookingStatus.CONFIRMED);
-        // Окремо save() не потрібен: сутність "керована" Hibernate, зміни зафіксуються при коміті (dirty checking)
+        booking.setStatus(BookingStatus.CONFIRMED);                                                                                                                                                                                   // Окремо save() не потрібен: сутність "керована" Hibernate, зміни зафіксуються при коміті (dirty checking)
         return mapper.toDto(booking);
     }
 
+    @Audited("BOOKING_CANCELLED")
     @Transactional
     public BookingDto cancel(Long id) {
         Booking booking = loadAccessible(id);
         booking.setStatus(BookingStatus.CANCELLED);
         return mapper.toDto(booking);
+    }
+
+    /**
+     * НАВМИСНА демонстрація пастки самовиклику (self-invocation). Не виправляти!
+     *
+     * Робить те саме, що cancel(), але викликає його через this. this - це сам об'єкт BookingService,
+     * а не проксі, який Spring видає іншим бінам. Тому AuditAspect тут НЕ спрацьовує: бронювання
+     * скасовується, а запису в журналі аудиту немає - і жодної помилки чи попередження.
+     * Порівняйте: зовнішній виклик bookingService.cancel(id) (з контролера чи тесту) іде через проксі й аудитується.
+     */
+    @Transactional
+    public BookingDto cancelViaSelfInvocation(Long id) {
+        return this.cancel(id);
     }
 
     // Шукає бронювання і перевіряє право доступу: привілейовані бачать усе, USER - лише своє

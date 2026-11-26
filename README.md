@@ -14,6 +14,7 @@
 * **Міграції бази даних:** схема з контролем версій через Liquibase (`ddl-auto: validate`).
 * **Мапінг Entity ↔ DTO:** MapStruct.
 * **Власні анотації (лабораторна №3):** `@ValidBookingSlot` (Bean Validation), `@PrivilegedWrite` (композитна), `@CurrentUserId` (резолвер аргументів MVC). Опис: [docs/lab3/README.md](docs/lab3/README.md).
+* **AOP (лабораторна №4):** аспекти `@Audited` (журнал аудиту), `@RateLimited` (429 при перевищенні ліміту), `@NormalizedInput` (очищення тексту вводу) і демонстрація самовиклику. Опис: [docs/lab4/README.md](docs/lab4/README.md).
 * **Веб-інтерфейс:** серверні HTML-шаблони Thymeleaf (CRUD для кімнат і бронювань).
 * **Контейнеризація:** Docker Compose з PostgreSQL і Keycloak (автоматичний імпорт realm з ролями та тестовими користувачами).
 * **Готова колекція запитів:** Postman-колекція з отриманням токенів і сценаріями 200 / 201 / 204 / 401 / 403 / 409.

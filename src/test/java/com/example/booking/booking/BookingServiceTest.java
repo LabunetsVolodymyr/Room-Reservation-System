@@ -661,4 +661,21 @@ class BookingServiceTest {
         // Assert
         assertThat(thrown).isInstanceOf(NotFoundException.class);
     }
+
+    // ================= cancelViaSelfInvocation (лаба 4, демо самовиклику) =================
+    @Test
+    void cancelViaSelfInvocation_ownBooking_cancelsLikeCancel() {
+        // Arrange: у Unit-тесті проксі немає взагалі - перевіряємо лише, що логіка така сама, як у cancel()
+        Booking existing = booking(1L, USER_ID, BookingStatus.PENDING);
+        when(currentUser.isPrivileged()).thenReturn(false);
+        when(currentUser.id()).thenReturn(USER_ID);
+        when(repository.findById(1L)).thenReturn(Optional.of(existing));
+
+        // Act
+        BookingDto result = service.cancelViaSelfInvocation(1L);
+
+        // Assert
+        assertThat(result.status()).isEqualTo(BookingStatus.CANCELLED);
+        assertThat(existing.getStatus()).isEqualTo(BookingStatus.CANCELLED);
+    }
 }

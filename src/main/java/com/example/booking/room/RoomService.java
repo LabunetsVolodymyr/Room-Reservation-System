@@ -1,5 +1,7 @@
 package com.example.booking.room;
 
+import com.example.booking.aop.Audited;
+import com.example.booking.aop.NormalizedInput;
 import com.example.booking.common.NotFoundException;
 import lombok.RequiredArgsConstructor;                           // Lombok: конструктор для final-полів
 import com.example.booking.security.PrivilegedWrite;
@@ -40,12 +42,14 @@ public class RoomService {
     // сервісу: перед викликом методу обчислює SpEL-вираз. Немає ролі -> AccessDeniedException -> 403.
     // Працює і для REST API, і для Thymeleaf UI, бо обидва викликають цей сервіс.
     @PrivilegedWrite // = @PreAuthorize("hasAnyRole('ADMIN','MANAGER')") + @Transactional
+    @NormalizedInput // лаба 4: "  Room   Alpha " -> "Room Alpha" перед збереженням
     public RoomDto create(RoomDto dto) {
         // saveAndFlush робить INSERT одразу, тож порушення UNIQUE (дубль назви) виявляється тут, а не при коміті
         return mapper.toDto(repository.saveAndFlush(mapper.toEntity(dto)));
     }
 
     @PrivilegedWrite // = @PreAuthorize("hasAnyRole('ADMIN','MANAGER')") + @Transactional
+    @NormalizedInput
     public RoomDto update(Long id, RoomDto dto) {
         Room room = find(id);          // завантажує сутність (стає "керованою" Hibernate)
         mapper.update(dto, room);      // копіює поля з DTO у цю сутність
@@ -54,6 +58,7 @@ public class RoomService {
 
     @PreAuthorize("hasRole('ADMIN')") // видаляти кімнати може лише ADMIN
     @Transactional
+    @Audited("ROOM_DELETED")
     public void delete(Long id) {
         repository.delete(find(id));
         repository.flush(); // якщо є бронювання цієї кімнати - FK-помилка виникне тут -> 409

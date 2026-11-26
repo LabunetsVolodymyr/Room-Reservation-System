@@ -1,8 +1,11 @@
 package com.example.booking.common;
 
+import com.example.booking.aop.RateLimitExceededException;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -26,6 +29,18 @@ class GlobalExceptionHandlerTest {
         // Assert
         assertThat(result.getStatus()).isEqualTo(404);
         assertThat(result.getDetail()).isEqualTo("Room 1 not found");
+    }
+
+    @Test
+    void tooManyRequests_rateLimitExceeded_returns429WithRetryAfterHeader() {
+        // Act
+        ResponseEntity<ProblemDetail> result = handler.tooManyRequests(
+                new RateLimitExceededException("Too many calls", 40));
+
+        // Assert
+        assertThat(result.getStatusCode().value()).isEqualTo(429);
+        assertThat(result.getHeaders().getFirst(HttpHeaders.RETRY_AFTER)).isEqualTo("40");
+        assertThat(result.getBody().getDetail()).isEqualTo("Too many calls");
     }
 
     @Test
