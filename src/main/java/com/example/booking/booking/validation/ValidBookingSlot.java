@@ -10,7 +10,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Лаба 3, тип 1 - власна Bean Validation constraint-анотація рівня КЛАСУ.
+ * тип 1 - власна Bean Validation constraint-анотація рівня КЛАСУ.
  *
  * Бізнес-правило "коректний часовий слот бронювання" стосується ДВОХ полів одночасно (startTime і endTime),
  * тому анотація ставиться на весь DTO, а не на окреме поле:
@@ -28,11 +28,9 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = BookingSlotValidator.class)
 public @interface ValidBookingSlot {
 
-    // Повідомлення за замовчуванням. Валідатор замінює його конкретним поясненням, ЩО саме порушено.
-    String message() default "Booking time slot breaks the booking rules";
+    String message() default "Booking time slot breaks the booking rules";                                                                       // Повідомлення за замовчуванням. Валідатор замінює його конкретним поясненням, ЩО саме порушено.
 
-    // Обов'язкові елементи будь-якої constraint-анотації (вимога специфікації Bean Validation)
-    Class<?>[] groups() default {};
+    Class<?>[] groups() default {};                                                                                                                     // Повідомлення за замовчуванням. Валідатор замінює його конкретним поясненням, ЩО саме порушено.
 
     Class<? extends Payload>[] payload() default {};
 

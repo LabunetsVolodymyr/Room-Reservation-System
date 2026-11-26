@@ -18,7 +18,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Лаба 3, тип 1 (AC1-AC3). Використовується СПРАВЖНІЙ Bean Validation (Hibernate Validator), без Spring:
+ * тип 1 (AC1-AC3). Використовується СПРАВЖНІЙ Bean Validation (Hibernate Validator), без Spring:
  * ми лише просимо validator.validate(dto), а BookingSlotValidator він знаходить сам за @Constraint(validatedBy).
  */
 class BookingSlotValidatorTest {
@@ -69,10 +69,10 @@ class BookingSlotValidatorTest {
     // ================= AC2: коректні дані - порушень немає =================
     @ParameterizedTest(name = "{0} -> {1}")
     @CsvSource({
-            "2026-12-01T10:00, 2026-12-01T11:00",   // звичайна година
-            "2026-12-01T10:00, 2026-12-01T10:15",   // межа: рівно 15 хв
-            "2026-12-01T09:00, 2026-12-01T17:00",   // межа: рівно 8 год
-            "2026-12-01T18:00, 2026-12-01T23:59"    // пізно ввечері, але в той самий день
+            "2026-12-01T10:00, 2026-12-01T11:00",
+            "2026-12-01T10:00, 2026-12-01T10:15",
+            "2026-12-01T09:00, 2026-12-01T17:00",
+            "2026-12-01T18:00, 2026-12-01T23:59"                                                                                                                                              // пізно ввечері, але в той самий день
     })
     void validate_slotWithinRules_noViolations(LocalDateTime start, LocalDateTime end) {
         // Arrange

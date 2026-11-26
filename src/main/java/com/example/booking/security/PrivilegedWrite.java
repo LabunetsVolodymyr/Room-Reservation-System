@@ -10,7 +10,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Лаба 3, тип 2 - композитна (meta-) анотація.
+ * тип 2 - композитна (meta-) анотація.
  *
  * У сервісах ці дві анотації регулярно стояли РАЗОМ на кожному методі, що змінює дані і доступний лише
  * ADMIN/MANAGER (RoomService.create, RoomService.update, BookingService.confirm):

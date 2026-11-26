@@ -33,8 +33,8 @@ public class BookingSlotValidator implements ConstraintValidator<ValidBookingSlo
         if (error == null) {
             return true;
         }
-        // Замість загального message() віддаємо конкретне пояснення і прив'язуємо його до поля endTime:
-        // у відповіді API це виглядає як "endTime: Booking must ..."
+                                                                                                                                               // Замість загального message() віддаємо конкретне пояснення і прив'язуємо його до поля endTime:
+                                                                                                                                               // у відповіді API це виглядає як "endTime: Booking must ..."
         context.disableDefaultConstraintViolation();
         context.buildConstraintViolationWithTemplate(error)
                 .addPropertyNode("endTime")

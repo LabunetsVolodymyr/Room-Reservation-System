@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
  * При створенні клієнт надсилає лише roomId, startTime, endTime; решту полів сервер заповнює сам
  * (ownerId беремо з токена, status = PENDING), тому довіряти цим полям із запиту не можна.
  *
- * @ValidBookingSlot - власне правило (лаба 3): слот у межах одного дня, тривалістю від 15 хв до 8 год.
+ * @ValidBookingSlot - власне правило : слот у межах одного дня, тривалістю від 15 хв до 8 год.
  */
 @ValidBookingSlot
 public record BookingDto(

@@ -7,7 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Лаба 3, тип 3 - анотація для параметра методу контролера, яку резолвить HandlerMethodArgumentResolver.
+ * тип 3 - (резорвер) анотація для параметра методу контролера, яку резолвить HandlerMethodArgumentResolver.
  *
  * Приклад:
  *     @GetMapping("/mine")
